@@ -170,8 +170,22 @@ namespace BrowserSelect
         }
         private static string GetChromeProfileName(string FullProfilePath)
         {
+            // Prefer the signed-in Google account email so profiles are
+            // identifiable when multiple sessions share the same display name.
+            // Fall back to profile.name for local (un-signed-in) profiles.
             dynamic ProfilePreferences = JObject.Parse(File.ReadAllText(FullProfilePath + @"\Preferences"));
-            return ProfilePreferences.profile.name;
+            try
+            {
+                var accountInfo = ProfilePreferences.account_info as JArray;
+                if (accountInfo != null && accountInfo.Count > 0)
+                {
+                    var email = (string)accountInfo[0]["email"];
+                    if (!string.IsNullOrWhiteSpace(email))
+                        return email;
+                }
+            }
+            catch { /* fall through to profile.name */ }
+            return (string)ProfilePreferences.profile.name;
         }
         
         private static List<string> FindChromeProfiles(string ChromeUserDataDir, string IconFilename)

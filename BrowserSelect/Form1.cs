@@ -26,27 +26,31 @@ namespace BrowserSelect
             SuspendLayout();
             browsers = BrowserFinder.find().Where(b => !Settings.Default.HideBrowsers.Contains(b.Identifier)).ToList();
             int i = 0;
-            int width = 0;
+            int rowWidth = 0;
+            int rowHeight = 0;
             for (int k = Controls.Count - 1; k >= 0; k--)
             {
                 Control c = Controls[k];
                 if (c is BrowserUC)
                     Controls.RemoveAt(k);
             }
-            // add browserUC objects to the form
+            // stack BrowserUC rows vertically
             foreach (var browser in browsers)
             {
-                var buc = new BrowserUC(browser, i);
-                width = buc.Width;  // buc.Width = 128*dpi Scale
-                buc.Left = width * i++;
-                buc.Click += browser_click;
-                this.Controls.Add(buc);
+                var row = new BrowserUC(browser, i);
+                rowWidth = row.Width;
+                rowHeight = row.Height;
+                row.Left = 0;
+                row.Top = rowHeight * i++;
+                row.Click += browser_click;
+                this.Controls.Add(row);
             }
             ResumeLayout();
-            buc.Left = i * width;
-            btn_help.Left = i * width;
-            btn_help.Top = buc.Height - btn_help.Height;
-            // this.Width = i * 128 + 20 + 20;
+            // ButtonsUC sidebar sits to the right of the list, help button bottom-right
+            buc.Left = rowWidth;
+            buc.Top = 0;
+            btn_help.Left = rowWidth;
+            btn_help.Top = Math.Max(i * rowHeight, buc.Height) - btn_help.Height;
         }
 
         private void Form1_Load(object sender, EventArgs e)
