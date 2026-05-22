@@ -177,38 +177,13 @@ namespace BrowserSelect
 
         private void btn_check_update_Click(object sender, EventArgs e)
         {
-            var btn = ((Button)sender);
-            var uc = new UpdateChecker();
-            // color the button to indicate request, disable it to prevent multiple instances
-            btn.BackColor = Color.Blue;
-            btn.Enabled = false;
-            // run inside a Task to prevent freezing the UI
-            Task.Factory.StartNew(() => uc.check()).ContinueWith(x =>
-            {
-                try
-                {
-                    if (uc.Checked)
-                    {
-                        if (uc.Updated)
-                            MessageBox.Show(String.Format(
-                                "New Update Available!\nCurrent Version: {1}\nLast Version: {0}" +
-                                "\nto Update download and install the new version from project's github.",
-                                uc.LVer, uc.CVer));
-                        else
-                            MessageBox.Show("You are running the lastest version.");
-                    }
-                    else
-                        MessageBox.Show("Unable to check for updates.\nPlease make sure you are connected to internet.");
-                    btn.UseVisualStyleBackColor = true;
-                    btn.Enabled = true;
-                }
-                catch (Exception) { }
-                return x;
-            }, TaskScheduler.FromCurrentSynchronizationContext());
+            MessageBox.Show("Update checks have been removed from this build. No network requests will be made.");
         }
         private void chk_check_update_CheckedChanged(object sender, EventArgs e)
         {
-            Settings.Default.check_update = (((CheckBox)sender).Checked) ? "0" : "nope";
+            // setting is preserved for backward compatibility but has no effect:
+            // update checks are removed from this build.
+            Settings.Default.check_update = "nope";
             Settings.Default.Save();
         }
 

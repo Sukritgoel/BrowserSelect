@@ -36,13 +36,7 @@ namespace BrowserSelect
                     Settings.Default.AutoBrowser = new StringCollection();
                 Settings.Default.Save();
             }
-            // check for update
-            if (Settings.Default.check_update != "nope" &&
-                DateTime.Now.Subtract(time(Settings.Default.check_update)).TotalDays > 7)
-            {
-                var uc = new UpdateChecker();
-                Task.Factory.StartNew(() => uc.check());
-            }
+            // update check removed in local build: no network calls.
             //checking if a url is being opened or app is ran from start menu (without arguments)
             if (args.Length > 0)
             {
