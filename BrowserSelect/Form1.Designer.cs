@@ -25,31 +25,25 @@
         private void InitializeComponent() {
             this.components = new System.ComponentModel.Container();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.btn_help = new System.Windows.Forms.Button();
+            this.listPanel = new System.Windows.Forms.Panel();
             this.SuspendLayout();
-            // 
-            // btn_help
-            // 
-            this.btn_help.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.btn_help.BackgroundImage = global::BrowserSelect.Properties.Resources.Button_help_icon;
-            this.btn_help.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.btn_help.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btn_help.FlatAppearance.BorderSize = 0;
-            this.btn_help.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn_help.Location = new System.Drawing.Point(97, 155);
-            this.btn_help.Name = "btn_help";
-            this.btn_help.Size = new System.Drawing.Size(25, 25);
-            this.btn_help.TabIndex = 0;
-            this.btn_help.UseVisualStyleBackColor = true;
-            this.btn_help.Click += new System.EventHandler(this.btn_help_Click);
-            // 
+            //
+            // listPanel
+            //
+            this.listPanel.AutoScroll = true;
+            this.listPanel.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.listPanel.Location = new System.Drawing.Point(0, 0);
+            this.listPanel.Name = "listPanel";
+            this.listPanel.Size = new System.Drawing.Size(360, 400);
+            this.listPanel.TabIndex = 1;
+            //
             // Form1
-            // 
+            //
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.ClientSize = new System.Drawing.Size(124, 181);
-            this.Controls.Add(this.btn_help);
+            this.ClientSize = new System.Drawing.Size(360, 28);
+            this.Controls.Add(this.listPanel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "Form1";
             this.Text = "Browser Select";
@@ -62,7 +56,7 @@
 
         #endregion
         private System.Windows.Forms.ToolTip toolTip1;
-        private System.Windows.Forms.Button btn_help;
+        private System.Windows.Forms.Panel listPanel;
     }
 }
 
