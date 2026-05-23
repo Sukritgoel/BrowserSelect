@@ -145,58 +145,74 @@ namespace BrowserSelect
         private static void AddChromeProfiles(List<Browser> browsers, string BrowserName, string VendorDataFolder, string IconFilename)
         {
             Browser BrowserChrome = browsers.FirstOrDefault(x => x.name == BrowserName);
-            if (BrowserChrome != null)
-            {
-                string ChromeUserDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), VendorDataFolder);
-                List<string> ChromeProfiles = FindChromeProfiles(ChromeUserDataDir, IconFilename);
+            if (BrowserChrome == null) return;
 
-                if (ChromeProfiles.Count > 1)
+            string ChromeUserDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), VendorDataFolder);
+            List<string> ChromeProfiles = FindChromeProfiles(ChromeUserDataDir, IconFilename);
+            if (ChromeProfiles.Count == 0) return;
+
+            int added = 0;
+            foreach (string Profile in ChromeProfiles)
+            {
+                string display;
+                if (!TryGetSignedInProfileDisplay(ChromeUserDataDir + "\\" + Profile, out display))
+                    continue;  // skip un-signed-in profiles
+                browsers.Add(new Browser()
                 {
-                    //add the Chrome instances and remove the default one
-                    foreach (string Profile in ChromeProfiles)
-                    {
-                        browsers.Add(new Browser()
-                        {
-                            name = BrowserName + " (" + GetChromeProfileName(ChromeUserDataDir + "\\" + Profile) + ")",
-                            exec = BrowserChrome.exec,
-                            icon = icon2String(IconExtractor.fromFile(ChromeUserDataDir + "\\" + Profile + "\\" + IconFilename)),
-                            additionalArgs = String.Format("--profile-directory={0}", Profile)
-                        });
-                    }
-                    browsers.Remove(BrowserChrome);
-                    browsers = browsers.OrderBy(x => x.name).ToList();
-                }
+                    name = display,
+                    exec = BrowserChrome.exec,
+                    icon = icon2String(IconExtractor.fromFile(ChromeUserDataDir + "\\" + Profile + "\\" + IconFilename)),
+                    additionalArgs = String.Format("--profile-directory={0}", Profile)
+                });
+                added++;
             }
+            // Only drop the generic "Google Chrome" entry if we actually replaced it.
+            if (added > 0)
+                browsers.Remove(BrowserChrome);
         }
-        private static string GetChromeProfileName(string FullProfilePath)
+
+        // Returns true and emits "<profile.name> (<email>)" only when the profile is
+        // signed into a Google account. Profiles without an email are skipped so the
+        // picker doesn't list anonymous duplicates like "Your Chrome" x N.
+        private static bool TryGetSignedInProfileDisplay(string FullProfilePath, out string displayName)
         {
-            // Prefer the signed-in Google account email so profiles are
-            // identifiable when multiple sessions share the same display name.
-            // Fall back to profile.name for local (un-signed-in) profiles.
-            dynamic ProfilePreferences = JObject.Parse(File.ReadAllText(FullProfilePath + @"\Preferences"));
+            displayName = null;
+            string name = null;
+            string email = null;
             try
             {
-                var accountInfo = ProfilePreferences.account_info as JArray;
-                if (accountInfo != null && accountInfo.Count > 0)
+                dynamic ProfilePreferences = JObject.Parse(File.ReadAllText(FullProfilePath + @"\Preferences"));
+                try { name = (string)ProfilePreferences.profile.name; } catch { }
+                try
                 {
-                    var email = (string)accountInfo[0]["email"];
-                    if (!string.IsNullOrWhiteSpace(email))
-                        return email;
+                    var accountInfo = ProfilePreferences.account_info as JArray;
+                    if (accountInfo != null && accountInfo.Count > 0)
+                        email = (string)accountInfo[0]["email"];
                 }
+                catch { }
             }
-            catch { /* fall through to profile.name */ }
-            return (string)ProfilePreferences.profile.name;
+            catch { return false; }
+
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+            displayName = !string.IsNullOrWhiteSpace(name)
+                ? name + " (" + email + ")"
+                : email;
+            return true;
         }
-        
+
+        // Returns direct subdirectories of ChromeUserDataDir that contain the profile
+        // icon. Uses GetDirectories (not recursive GetFiles) because Chrome occasionally
+        // caches a Google Profile.ico in nested subdirectories, which produced ghost
+        // duplicate entries in the picker.
         private static List<string> FindChromeProfiles(string ChromeUserDataDir, string IconFilename)
         {
-            List<string> Profiles = new List<string>();
-            var ProfileDirs = Directory.GetFiles(ChromeUserDataDir, IconFilename, SearchOption.AllDirectories).Select(Path.GetDirectoryName);
-            foreach (var Profile in ProfileDirs)
-            {
-                Profiles.Add(Profile.Substring(ChromeUserDataDir.Length + 1));
-            }
-            return Profiles;
+            if (!Directory.Exists(ChromeUserDataDir))
+                return new List<string>();
+            return Directory.GetDirectories(ChromeUserDataDir)
+                .Where(d => File.Exists(Path.Combine(d, IconFilename)))
+                .Select(Path.GetFileName)
+                .ToList();
         }
 
         private static List<Browser> find(RegistryKey hklm)
